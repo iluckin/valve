@@ -8,14 +8,14 @@ import (
 )
 
 func main() {
-	s, e := source.NewQuerier("103.53.124.109:6895", 1 * time.Second)
+	s, e := source.NewQuerier("103.205.253.202:33246", 1*time.Second)
 	defer s.Close()
 
 	if e != nil {
 		panic(e)
 	}
 
-	info, e := s.GetPlayerInfo()
+	info, e := s.GetInfo()
 	if e != nil {
 		panic(e)
 	}
@@ -23,4 +23,5 @@ func main() {
 	jsonBytes, e := json.Marshal(&info)
 
 	fmt.Println(string(jsonBytes))
+
 }

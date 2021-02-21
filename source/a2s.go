@@ -31,8 +31,12 @@ func NewQuerier(network string, timeout time.Duration) (*Querier, error) {
 	return &Querier{addr: Address{Host: ip.String(), Port: uint32(p)}, conn: conn}, nil
 }
 
-func (q *Querier) GetAddress() Address { return q.addr}
-func (q *Querier) Close() { if q.conn != nil { q.conn.Close() }}
+func (q *Querier) GetAddress() Address { return q.addr }
+func (q *Querier) Close() {
+	if q.conn != nil {
+		q.conn.Close()
+	}
+}
 
 func (q *Querier) GetChallengeCode() ([]byte, bool, error) {
 	var pb packet.PacketBuilder
@@ -93,21 +97,22 @@ func (q *Querier) GetInfo() (*ServerInfo, error) {
 	}
 
 	pr := packet.NewPacketReader(buf[4:])
-	pr.ReadUint8(); pr.ReadString()
+	pr.ReadUint8()
+	pr.ReadString()
 	s := &ServerInfo{
-		Address: q.addr,
-		Name: pr.ReadString(),
-		Map: pr.ReadString(),
-		Folder: pr.ReadString(),
-		Game: pr.ReadString(),
-		Players: pr.ReadUint8(),
+		Address:    q.addr,
+		Name:       pr.ReadString(),
+		Map:        pr.ReadString(),
+		Folder:     pr.ReadString(),
+		Game:       pr.ReadString(),
+		Players:    pr.ReadUint8(),
 		MaxPlayers: pr.ReadUint8(),
-		Protocol: pr.ReadUint8(),
+		Protocol:   pr.ReadUint8(),
 		ServerType: ParseServerType(pr.ReadUint8()),
-		Platform: ParsePlatform(pr.ReadUint8()),
-		Locked: pr.ReadUint8() == 0x01,
-		VAC: pr.ReadUint8() == 0x01,
-		Version: pr.ReadString(),
+		Platform:   ParsePlatform(pr.ReadUint8()),
+		Locked:     pr.ReadUint8() == 0x01,
+		VAC:        pr.ReadUint8() == 0x01,
+		Version:    pr.ReadString(),
 	}
 
 	return s, nil
@@ -116,14 +121,14 @@ func (q *Querier) GetInfo() (*ServerInfo, error) {
 func ParseServerType(sType uint8) ServerType {
 	switch sType {
 	case uint8('d'):
-		return ServerType_Dedicated
+		return ServerTypeDedicated
 	case uint8('l'):
-		return ServerType_NonDedicated
+		return ServerTypeNonDedicated
 	case uint8('p'):
-		return ServerType_SourceTV
+		return ServerTypeSourceTV
 	}
 
-	return ServerType_Unknown
+	return ServerTypeUnknown
 }
 
 func ParsePlatform(p uint8) string {
@@ -135,24 +140,6 @@ func ParsePlatform(p uint8) string {
 	}
 
 	return "Unknown"
-}
-
-type Player struct {
-	ID uint8 `json:"id"`
-	Name string `json:"name"`
-	Score uint32 `json:"score"`
-	Duration float32 `json:"duration"`
-	TheShip *TheShipPlayer `json:"theShip"`
-}
-
-type TheShipPlayer struct {
-	Deaths uint32 `json:"deaths"`
-	Money uint32 `json:"money"`
-}
-
-type PlayerInfo struct {
-	Count uint8 `json:"count"`
-	Players []*Player `json:"players"`
 }
 
 func (q *Querier) GetPlayerInfo() (*PlayerInfo, error) {
@@ -210,10 +197,10 @@ func (q *Querier) parsePlayerInfo(data []byte) (*PlayerInfo, error) {
 		player.Duration = reader.ReadFloat32()
 
 		if q.ver == 2400 { // The Ship additional player info only if client AppID is set to 2400
-			player.TheShip = &TheShipPlayer{}
+			player.Ship = &ShipPlayer{}
 
-			player.TheShip.Deaths = reader.ReadUint32()
-			player.TheShip.Money = reader.ReadUint32()
+			player.Ship.Deaths = reader.ReadUint32()
+			player.Ship.Money = reader.ReadUint32()
 		}
 
 		info.Players = append(info.Players, player)
