@@ -53,8 +53,7 @@ func (q *Querier) GetChallengeCode() ([]byte, bool, error) {
 		return nil, false, err
 	}
 
-	data := make([]byte, len)
-	copy(data, buf[:len])
+	data := buf[:len]
 	reader := packet.NewPacketReader(data)
 
 	switch int32(reader.ReadUint32()) {
@@ -189,18 +188,13 @@ func (q *Querier) parsePlayerInfo(data []byte) (*PlayerInfo, error) {
 	info.Count = reader.ReadUint8()
 
 	for i := 0; i < int(info.Count); i++ {
-		player = &Player{}
-
-		player.ID = reader.ReadUint8()
-		player.Name = reader.ReadString()
-		player.Score = reader.ReadUint32()
-		player.Duration = reader.ReadFloat32()
+		player = &Player{
+			ID: reader.ReadUint8(), Name: reader.ReadString(),
+			Score: reader.ReadUint32(), Duration: reader.ReadFloat32(),
+		}
 
 		if q.ver == 2400 { // The Ship additional player info only if client AppID is set to 2400
-			player.Ship = &ShipPlayer{}
-
-			player.Ship.Deaths = reader.ReadUint32()
-			player.Ship.Money = reader.ReadUint32()
+			player.Ship = &ShipPlayer{Deaths: reader.ReadUint32(), Money: reader.ReadUint32()}
 		}
 
 		info.Players = append(info.Players, player)
