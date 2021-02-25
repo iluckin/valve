@@ -4,11 +4,12 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"iluckin.cn/valve/utils/packet"
 	"net"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/iluckin/valve/utils/packet"
 )
 
 func NewQuerier(network string, timeout time.Duration) (*Querier, error) {
